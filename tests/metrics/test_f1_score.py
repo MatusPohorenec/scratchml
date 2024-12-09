@@ -64,6 +64,57 @@ class Test_F1Score(unittest.TestCase):
 
         assert np.abs(score - sklr_score) < 0.05
 
+    def test_invalid_average(self):
+        """
+        Test that a ValueError is raised when an invalid average value is passed.
+        """
+        X, y = generate_classification_dataset(
+            n_features=10, n_samples=10000, n_classes=2
+        )
+
+        sklr = SkLogisticRegression(
+            penalty=None, fit_intercept=True, max_iter=1000000, tol=1e-4
+        )
+
+        sklr.fit(X, y)
+        sklr_prediction = sklr.predict(X)
+
+        with self.assertRaises(ValueError):
+            f1_score(y, sklr_prediction, average="invalid")
+
+    @repeat(1)
+    def test_macro_average(self):
+        """
+        Test the F1-Score metric with the "macro" average.
+        """
+        X, y = generate_classification_dataset(
+            n_features=10, n_samples=1000, n_classes=3
+        )
+        sklr = SkLogisticRegression(
+            penalty=None, fit_intercept=True, max_iter=1000000, tol=1e-4
+        )
+        sklr.fit(X, y)
+        sklr_prediction = sklr.predict(X)
+        sklr_score = SkF1(y, sklr_prediction, average="macro")
+        score = f1_score(y, sklr_prediction, average="macro")
+        assert np.abs(score - sklr_score) < 0.05
+
+    @repeat(1)
+    def test_weighted_average(self):
+        """
+        Test the F1-Score metric with the "weighted" average.
+        """
+        X, y = generate_classification_dataset(
+            n_features=10, n_samples=1000, n_classes=3
+        )
+        sklr = SkLogisticRegression(
+            penalty=None, fit_intercept=True, max_iter=1000000, tol=1e-4
+        )
+        sklr.fit(X, y)
+        sklr_prediction = sklr.predict(X)
+        sklr_score = SkF1(y, sklr_prediction, average="weighted")
+        score = f1_score(y, sklr_prediction, average="weighted")
+        assert np.abs(score - sklr_score) < 0.05
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

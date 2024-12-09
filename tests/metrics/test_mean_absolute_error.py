@@ -30,6 +30,25 @@ class Test_MeanAbsoluteError(unittest.TestCase):
 
         assert np.abs(score - sklr_score) < 0.1
 
+    @repeat(1)
+    def test_2(self):
+        """
+        Test the derivative of the Mean Absolute Error.
+        """
+        X, y = generate_regression_dataset(n_samples=100, n_features=10, n_targets=1)
+
+        sklr = SkLinearRegression()
+
+        sklr.fit(X, y)
+
+        sklr_prediction = sklr.predict(X)
+
+        derivative_score = mean_absolute_error(y, sklr_prediction, derivative=True)
+
+        expected_derivative = np.where(sklr_prediction > y, 1, -1) / y.shape[0]
+
+        assert np.allclose(derivative_score, expected_derivative)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -148,6 +148,26 @@ class Test_ConfusionMatrix(unittest.TestCase):
         assert_equal(sklr_score.shape, score.shape)
         assert_equal(type(sklr_score), type(score))
 
+    @repeat(1)
+    def test_invalid_normalize(self):
+        """
+        Test that a ValueError is raised when an invalid normalize value is passed.
+        """
+        X, y = generate_classification_dataset(
+            n_features=10, n_samples=10000, n_classes=2
+        )
+
+        sklr = SkLogisticRegression(
+            penalty=None, fit_intercept=True, max_iter=1000000, tol=1e-4
+        )
+
+        sklr.fit(X, y)
+        sklr_prediction = sklr.predict(X)
+
+        with self.assertRaises(ValueError):
+            confusion_matrix(y, sklr_prediction, normalize="invalid")
+
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

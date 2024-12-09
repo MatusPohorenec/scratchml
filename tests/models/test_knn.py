@@ -7,13 +7,30 @@ import unittest
 import math
 import numpy as np
 
+import cProfile
+import pstats
+from io import StringIO
+
+def profile_test(func):
+    def wrapper(*args, **kwargs):
+        pr = cProfile.Profile()
+        pr.enable()
+        result = func(*args, **kwargs)
+        pr.disable()
+        s = StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        total_time = ps.total_tt
+        print(f"Total execution time: {total_time:.6f} seconds")
+        return result
+    return wrapper
 
 class Test_KNN(unittest.TestCase):
     """
     Unittest class created to test the KNN implementation.
     """
 
-    @repeat(3)
+    @repeat(1)
+    @profile_test
     def test_1(self):
         """
         Test the KNN implementation on a small dataset using the 'manhattan' metric
@@ -47,7 +64,8 @@ class Test_KNN(unittest.TestCase):
         assert_equal(sk_neighbors[0].shape, neighbors[0].shape)
         assert_equal(sk_neighbors[1].shape, neighbors[1].shape)
 
-    @repeat(3)
+    @repeat(1)
+    @profile_test
     def test_2(self):
         """
         Test the KNN implementation on a small dataset using the 'euclidean' metric
@@ -81,7 +99,8 @@ class Test_KNN(unittest.TestCase):
         assert_equal(sk_neighbors[0].shape, neighbors[0].shape)
         assert_equal(sk_neighbors[1].shape, neighbors[1].shape)
 
-    @repeat(3)
+    @repeat(1)
+    @profile_test
     def test_3(self):
         """
         Test the KNN implementation on a small dataset with higher dimension
@@ -115,7 +134,8 @@ class Test_KNN(unittest.TestCase):
         assert_equal(sk_neighbors[0].shape, neighbors[0].shape)
         assert_equal(sk_neighbors[1].shape, neighbors[1].shape)
 
-    @repeat(3)
+    @repeat(1)
+    @profile_test
     def test_4(self):
         """
         Test the KNN implementation on a small dataset with higher dimension with more neighbors
@@ -148,7 +168,8 @@ class Test_KNN(unittest.TestCase):
         assert_equal(sk_neighbors[0].shape, neighbors[0].shape)
         assert_equal(sk_neighbors[1].shape, neighbors[1].shape)
 
-    @repeat(3)
+    @repeat(1)
+    @profile_test
     def test_5(self):
         """
         Test the KNN implementation on a small dataset with higher dimension

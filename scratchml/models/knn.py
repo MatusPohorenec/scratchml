@@ -18,7 +18,7 @@ from ..metrics import (
 )
 from typing import Tuple, Union, List
 import numpy as np
-
+from scipy.spatial import KDTree
 
 class BaseKNN(ABC):
     """
@@ -63,7 +63,7 @@ class BaseKNN(ABC):
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """
         Function responsible for fitting the KNN model. Since this model
-        does not requires any fitting, the major calculation will be done
+        does not require any fitting, the major calculation will be done
         during the prediction.
 
         Args:
@@ -81,13 +81,15 @@ class BaseKNN(ABC):
         self.X_ = X.copy()
         self.y_ = y.copy()
 
+        # Build KD-Tree
+        self.kd_tree_ = KDTree(self.X_)
+
     def kneighbors(
-        self,
-        X: np.ndarray = None,
-        n_neighbors: int = None,
-        return_distance: bool = True,
+            self,
+            X: np.ndarray = None,
+            n_neighbors: int = None,
+            return_distance: bool = True,
     ) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
-        # FIXME: Optimize and improve this function
         """
         Gets the K-neighbors of a data point.
 
@@ -104,45 +106,15 @@ class BaseKNN(ABC):
             Tuple[np.ndarray, np.ndarray]: the distances of each neighbor (if
                 return_distance = True) and the neighbors indexes, respectively.
         """
-        # validating the X value
-        if not X is None:
-            X = convert_array_numpy(X)
-        else:
+        if X is None:
             X = self.X_
-
-        # validating the n_neighbors value
-        if n_neighbors is not None:
-            try:
-                assert n_neighbors > 0
-            except AssertionError as error:
-                raise ValueError(
-                    "The number of neighbors must be bigger than zero.\n"
-                ) from error
         else:
+            X = convert_array_numpy(X)
+
+        if n_neighbors is None:
             n_neighbors = self.n_neighbors
 
-        distances = []
-        indexes = []
-        dist = []
-
-        # calculating the distances between the data points
-        if self.effective_metric_ == "euclidean":
-            dist = euclidean(X, self.X_)
-        elif self.effective_metric_ == "chebyshev":
-            dist = chebyshev(X, self.X_)
-        elif self.effective_metric_ == "manhattan":
-            dist = manhattan(X, self.X_)
-        elif self.effective_metric_ == "minkowski":
-            dist = minkowski(X, self.X_, self.p)
-
-        # getting the n neighbors for each calculated distance
-        for d in dist:
-            n_indexes = d.argsort()[:n_neighbors]
-            indexes.append(n_indexes)
-            distances.append(d[n_indexes])
-
-        indexes = convert_array_numpy(indexes)
-        distances = convert_array_numpy(distances)
+        distances, indexes = self.kd_tree_.query(X, k=n_neighbors)
 
         if return_distance:
             return distances, indexes

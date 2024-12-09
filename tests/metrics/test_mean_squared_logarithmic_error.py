@@ -33,6 +33,20 @@ class Test_MeanSquaredLogarithmicError(unittest.TestCase):
 
         assert np.abs(score - sklr_score) < 0.1
 
+    def test_2(self):
+        """
+        Test that the NotImplementedError is raised when derivative is set to True.
+        """
+        X, y = generate_regression_dataset(n_samples=100, n_features=10, n_targets=1)
+        y = np.abs(y)
+        sklr = SkLinearRegression()
+        sklr.fit(X, y)
+        sklr_prediction = sklr.predict(X)
+
+        with self.assertRaises(NotImplementedError):
+            mean_squared_logarithmic_error(y, sklr_prediction, derivative=True)
+
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
